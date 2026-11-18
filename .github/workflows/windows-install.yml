@@ -31,7 +31,15 @@ jobs:
             $exe = Join-Path $env:RUNNER_TEMP $file
             Write-Output "$file SHA256 $((Get-FileHash $exe).Hash)"
             $setup = Start-Process $exe '--quiet --no-launch' -PassThru -Wait -WindowStyle Hidden
-            if ($setup.ExitCode -ne 0) { throw "$file setup failed with $($setup.ExitCode)" }
+            if ($setup.ExitCode -ne 0) {
+              Write-Output "WebView2 after failure: $(@(RuntimeVersions) -join ', ')"
+              $env:PARALLEL_READER_TEST_ROOT = Join-Path $env:RUNNER_TEMP 'reader-diagnostic'
+              New-Item -ItemType Directory -Force $env:PARALLEL_READER_TEST_ROOT | Out-Null
+              $retry = Start-Process $exe '--quiet --no-launch' -PassThru -Wait -WindowStyle Hidden
+              $errorFile = Join-Path $env:PARALLEL_READER_TEST_ROOT 'setup-error.txt'
+              if (Test-Path $errorFile) { Get-Content -Encoding UTF8 $errorFile }
+              throw "$file setup failed with $($setup.ExitCode); diagnostic retry $($retry.ExitCode)"
+            }
             Write-Output "WebView2 after installation: $(@(RuntimeVersions) -join ', ')"
             if (!(Test-Path $shortcut) -or !(Test-Path $uninstall)) { throw 'Start menu or uninstall registration failed' }
             $reader = Start-Process (Join-Path $program 'ParallelReader.exe') -PassThru -WindowStyle Hidden

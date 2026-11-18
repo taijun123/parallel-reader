@@ -42,9 +42,17 @@ internal static class Setup
         }
         catch (Exception error)
         {
-            if (!quiet) MessageBox.Show(error.Message, AppName + "安装失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
             string testRoot = Environment.GetEnvironmentVariable("PARALLEL_READER_TEST_ROOT");
-            if (!String.IsNullOrEmpty(testRoot)) File.WriteAllText(Path.Combine(testRoot, "setup-error.txt"), error.ToString());
+            string logRoot = !String.IsNullOrEmpty(testRoot) ? testRoot :
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "ParallelReader");
+            try
+            {
+                Directory.CreateDirectory(logRoot);
+                File.WriteAllText(Path.Combine(logRoot, "setup-error.txt"), error.ToString());
+            }
+            catch (IOException) { }
+            catch (UnauthorizedAccessException) { }
+            if (!quiet) MessageBox.Show(error.Message, AppName + "安装失败", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return 1;
         }
     }
@@ -100,7 +108,12 @@ internal static class Setup
     private static void EnsureWebViewRuntime(string staging)
     {
         string installer = Path.Combine(staging, "MicrosoftEdgeWebView2RuntimeInstallerX64.exe");
-        if (!File.Exists(installer)) return;
+        if (!File.Exists(installer))
+        {
+            if (!HasRecentWebViewRuntime())
+                throw new InvalidOperationException("这台电脑需要更新 WebView2。请下载包含运行时的 ParallelReader-Offline-Setup-x64.exe。");
+            return;
+        }
         if (!HasRecentWebViewRuntime())
         {
             var start = new ProcessStartInfo(installer, "/silent /install") {
@@ -108,11 +121,19 @@ internal static class Setup
             };
             int code;
             using (var setup = Process.Start(start)) { setup.WaitForExit(); code = setup.ExitCode; }
+            // Edge Update can complete registration in another process.
+            for (int attempt = 0; attempt < 60 && !HasRecentWebViewRuntime(); attempt++)
+                Thread.Sleep(500);
             if (!HasRecentWebViewRuntime())
                 throw new InvalidOperationException("WebView2 离线安装未完成（代码 0x" + code.ToString("X8") +
                     "）。请检查设备的软件安装策略，或重启后再次运行此安装包。");
         }
-        File.Delete(installer);
+        // Edge Update may still have its installer open just after registering.
+        for (int attempt = 0; ; attempt++)
+        {
+            try { File.Delete(installer); break; }
+            catch (IOException) { if (attempt >= 30) throw; Thread.Sleep(500); }
+        }
     }
 
     private static void ConfigureLibrary(string staging, string data, string documents)
@@ -163,7 +184,8 @@ internal static class Setup
     private static void Register(string target)
     {
         string app = Path.Combine(target, "ParallelReader.exe");
-        string shortcutPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), AppName + ".lnk");
+        string programs = Environment.GetFolderPath(Environment.SpecialFolder.Programs, Environment.SpecialFolderOption.Create);
+        string shortcutPath = Path.Combine(programs, AppName + ".lnk");
         dynamic shell = Activator.CreateInstance(Type.GetTypeFromProgID("WScript.Shell"));
         dynamic shortcut = shell.CreateShortcut(shortcutPath);
         shortcut.TargetPath = app;

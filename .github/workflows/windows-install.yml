@@ -1,6 +1,11 @@
 name: Check published Windows installers
 on:
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag
+        default: v1.0.1
+        required: true
 permissions:
   contents: read
 jobs:
@@ -13,9 +18,10 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.tag }}
         run: |
           $ErrorActionPreference = 'Stop'
-          gh release download v1.0.0 --repo $env:GITHUB_REPOSITORY --pattern '*.exe' --dir $env:RUNNER_TEMP
+          gh release download $env:RELEASE_TAG --repo $env:GITHUB_REPOSITORY --pattern '*.exe' --dir $env:RUNNER_TEMP
           if ($LASTEXITCODE -ne 0) { throw 'Download failed' }
           $program = Join-Path $env:LOCALAPPDATA 'Programs/ParallelReader'
           $shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) '对读 PDF 阅读器.lnk'
@@ -33,6 +39,8 @@ jobs:
             $setup = Start-Process $exe '--quiet --no-launch' -PassThru -Wait -WindowStyle Hidden
             if ($setup.ExitCode -ne 0) {
               Write-Output "WebView2 after failure: $(@(RuntimeVersions) -join ', ')"
+              $firstError = Join-Path $env:LOCALAPPDATA 'ParallelReader/setup-error.txt'
+              if (Test-Path $firstError) { Get-Content -Encoding UTF8 $firstError }
               $env:PARALLEL_READER_TEST_ROOT = Join-Path $env:RUNNER_TEMP 'reader-diagnostic'
               New-Item -ItemType Directory -Force $env:PARALLEL_READER_TEST_ROOT | Out-Null
               $retry = Start-Process $exe '--quiet --no-launch' -PassThru -Wait -WindowStyle Hidden

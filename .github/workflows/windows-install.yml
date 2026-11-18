@@ -20,11 +20,19 @@ jobs:
           $program = Join-Path $env:LOCALAPPDATA 'Programs/ParallelReader'
           $shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) '对读 PDF 阅读器.lnk'
           $uninstall = 'HKCU:/Software/Microsoft/Windows/CurrentVersion/Uninstall/ParallelReader'
+          $client = 'Microsoft/EdgeUpdate/Clients/{F3017226-FE2A-4295-8BDF-00C3A9A7E4C5}'
+          function RuntimeVersions {
+            foreach ($prefix in 'HKCU:/SOFTWARE','HKCU:/SOFTWARE/WOW6432Node','HKLM:/SOFTWARE','HKLM:/SOFTWARE/WOW6432Node') {
+              (Get-ItemProperty "$prefix/$client" -ErrorAction SilentlyContinue).pv
+            }
+          }
+          Write-Output "WebView2 before installation: $(@(RuntimeVersions) -join ', ')"
           foreach ($file in 'ParallelReader-Offline-Setup-x64.exe','ParallelReader-Setup-x64.exe') {
             $exe = Join-Path $env:RUNNER_TEMP $file
             Write-Output "$file SHA256 $((Get-FileHash $exe).Hash)"
             $setup = Start-Process $exe '--quiet --no-launch' -PassThru -Wait -WindowStyle Hidden
             if ($setup.ExitCode -ne 0) { throw "$file setup failed with $($setup.ExitCode)" }
+            Write-Output "WebView2 after installation: $(@(RuntimeVersions) -join ', ')"
             if (!(Test-Path $shortcut) -or !(Test-Path $uninstall)) { throw 'Start menu or uninstall registration failed' }
             $reader = Start-Process (Join-Path $program 'ParallelReader.exe') -PassThru -WindowStyle Hidden
             try {

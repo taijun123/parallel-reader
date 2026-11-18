@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f0f1f9" />
+    <title>对读 · 双栏 PDF 阅读器</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Crect width='40' height='40' rx='10' fill='%236550e7'/%3E%3Cpath d='M11 10h7v20h-7zm11 0h7v20h-7z' fill='white'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <header class="app-header">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 4q5-2 9 2 4-4 9-2v15q-5-2-9 1-4-3-9-1zM12 6v14"/></svg></span><h1>对读</h1><span class="brand-caption">双栏 PDF 阅读器</span></div>
+      <div class="header-actions"><span class="local-badge"><i></i>文件仅在本机读取</span><button id="reading-mode" class="quiet" aria-pressed="false" aria-controls="workspace" title="收起工具栏，扩大阅读区域">阅读模式</button><button id="help" class="quiet">使用说明 <span class="keycap">?</span></button></div>
+    </header>
+    <section class="syncbar" aria-label="同步设置">
+      <div class="sync-title"><span class="link-icon" aria-hidden="true">⇄</span><span>阅读联动</span></div>
+      <label class="switch-label"><input id="sync-scroll" type="checkbox" checked /><span class="switch"></span>同步滚动</label>
+      <label class="switch-label"><input id="sync-zoom" type="checkbox" checked /><span class="switch"></span>同步缩放</label>
+      <span class="divider"></span>
+      <select id="sync-mode" aria-label="滚动同步方式"><option value="page">按页位置</option><option value="progress">按全文进度</option></select>
+      <button id="align" class="quiet" title="先分别滚到对应段落，再将两处位置设为同步起点">对齐当前位置</button>
+      <span class="sync-hint">按住 <kbd>Alt</kbd> 可临时独立操作</span>
+    </section>
+    <main id="workspace" class="workspace" aria-label="双栏阅读区"></main>
+    <button id="exit-reading-mode" class="reading-exit" hidden title="退出阅读模式（Esc）">退出阅读模式 <kbd>Esc</kbd></button>
+    <footer><span id="status" role="status">打开原文和译文，开始对照阅读</span><span class="footer-right">文件保存在本机</span></footer>
+    <div id="toast" role="status" class="toast" hidden></div>
+    <dialog id="help-dialog"><form method="dialog"><button class="dialog-close" aria-label="关闭使用说明">×</button></form><span class="eyebrow">双栏阅读</span><h2>把两份文档放在一起</h2><ol><li>先选择存放文件夹，再导入 PDF，也可直接拖入并选择文件夹。</li><li>在文档目录点击“左栏”或“右栏”，打开已保存的 PDF；点击“移动”可更换文件夹。</li><li>打开同步开关后，在任意一侧滚动或缩放，另一侧会跟随。</li><li>译文排版不同？先关闭同步滚动，分别找到对应段落，点击“对齐当前位置”，再打开同步。</li><li>选中文字后可添加标注，也可用栏内工具添加区域标注或书签。侧栏“批注”可回到标记位置，或导出标注。</li></ol><div class="help-note"><p><b>按页位置</b>适合页码基本对应的文档；<b>按全文进度</b>适合页数差异较大的文档。</p><p>按住 <kbd>Alt</kbd> 临时独立操作。<kbd>Ctrl</kbd> + 滚轮缩放鼠标所在的一栏。两项同步可以分别关闭。</p><p>导入的 PDF 保存在本地文档库，原文件保留。刷新后可从目录重新打开。</p></div><button id="help-done" class="primary">开始阅读</button></dialog>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
+
+

@@ -1,0 +1,127 @@
+.pane-mark-tools {
+  display: flex;
+  align-items: center;
+  margin-top: -3px;
+  gap: 1px;
+}
+.pane-mark-tools button {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 23px;
+  padding: 4px;
+  color: var(--accent);
+}
+.pane-mark-tools svg { width: 15px; height: 15px; }
+.pane-mark-tools button[aria-pressed="true"] { background: #e1ede1; }
+.pane-mark-tools button[data-mark-pane="bookmark"][aria-pressed="true"] svg { fill: #c4dbc6; }
+[data-mark-color="yellow"] { --mark-ink: #db9b0d; --mark-fill: #ffcc45; }
+[data-mark-color="mint"] { --mark-ink: #38795f; --mark-fill: #80d9af; }
+[data-mark-color="purple"] { --mark-ink: #7856ac; --mark-fill: #bda0ef; }
+[data-mark-color="pink"] { --mark-ink: #a84e7d; --mark-fill: #f6a1bf; }
+.mark-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+.mark-shape, .mark-area-preview, .mark-bookmark-flag { position: absolute; pointer-events: none; }
+.mark-shape {
+  background: color-mix(in srgb, var(--mark-fill) 38%, transparent);
+  border-radius: 2px;
+}
+.mark-shape[data-mark-type="underline"] {
+  background: none;
+  border-radius: 0;
+  border-bottom: 2px solid var(--mark-ink);
+}
+.mark-shape[data-mark-type="note"] { border-bottom: 2px dotted var(--mark-ink); }
+.mark-shape[data-mark-type="area"], .mark-area-preview {
+  background: color-mix(in srgb, var(--mark-fill) 16%, transparent);
+  border: 2px solid var(--mark-ink);
+  border-radius: 2px;
+}
+.mark-area-preview { z-index: 6; border-style: dashed; }
+.mark-bookmark-flag {
+  top: 0;
+  right: 13px;
+  width: 16px;
+  height: 24px;
+  z-index: 1;
+  background: var(--mark-ink);
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 73%, 0 100%);
+}
+.mark-flash { animation: mark-flash .95s ease-out; }
+@keyframes mark-flash {
+  0%, 35% { outline: 3px solid var(--mark-ink, #548361); }
+  100% { outline: 3px solid transparent; }
+}
+@media (prefers-reduced-motion: reduce) { .mark-flash { animation: none; } }
+.mark-area-mode .page, .mark-area-mode .page * {
+  cursor: crosshair !important;
+  user-select: none !important;
+  touch-action: none;
+}
+.mark-selection-toolbar, .mark-link-banner {
+  position: fixed;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 1px solid #dbe1d9;
+  border-radius: 9px;
+  color: #344f40;
+  background: white;
+  padding: 5px;
+  box-shadow: 0 5px 20px #21372625;
+  font-size: 12px;
+}
+.mark-selection-toolbar > button, .mark-link-banner > button { padding: 5px 6px; white-space: nowrap; }
+.mark-swatches {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding-inline: 6px;
+  border-inline: 1px solid #e3e9e0;
+}
+.mark-swatch {
+  padding: 0;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border-radius: 50%;
+  background: var(--mark-fill);
+  border: 1px solid color-mix(in srgb, var(--mark-ink) 44%, transparent);
+}
+.mark-swatch:hover { background: var(--mark-fill); }
+.mark-swatch[aria-pressed="true"] { outline: 1px solid var(--mark-ink); outline-offset: 1px; }
+.mark-link-banner { left: 50%; bottom: 40px; transform: translateX(-50%); max-width: 95vw; padding: 6px 9px; }
+.mark-link-banner > span { white-space: nowrap; }
+.mark-link-banner > button { text-decoration: underline; }
+.mark-editor { width: min(450px, calc(100vw - 24px)); }
+.mark-editor form { display: grid; gap: 12px; }
+.mark-editor h2 { margin: 0; }
+.mark-editor-text {
+  max-height: 7rem;
+  overflow: auto;
+  margin: 0;
+  padding: 7px 10px;
+  background: #f4f7f2;
+  border-left: 2px solid #c3d5c5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.mark-editor label { display: grid; gap: 4px; font-size: 12px; }
+.mark-editor select, .mark-editor textarea {
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 7px 8px;
+  color: inherit;
+  font: inherit;
+  background: white;
+}
+.mark-editor textarea { width: 100%; resize: vertical; }
+.mark-editor-actions { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.mark-editor-actions button { padding: 7px 8px; }
+.mark-editor-actions [data-mark-edit="cancel"] { margin-left: auto; }
+.mark-editor-actions [data-mark-edit="delete"] { color: #a23827; }

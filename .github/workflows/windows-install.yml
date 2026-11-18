@@ -1,0 +1,53 @@
+name: Check published Windows installers
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  install:
+    runs-on: windows-2022
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download release and check both installers
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          gh release download v1.0.0 --repo $env:GITHUB_REPOSITORY --pattern '*.exe' --dir $env:RUNNER_TEMP
+          if ($LASTEXITCODE -ne 0) { throw 'Download failed' }
+          $program = Join-Path $env:LOCALAPPDATA 'Programs/ParallelReader'
+          $shortcut = Join-Path ([Environment]::GetFolderPath('Programs')) '对读 PDF 阅读器.lnk'
+          $uninstall = 'HKCU:/Software/Microsoft/Windows/CurrentVersion/Uninstall/ParallelReader'
+          foreach ($file in 'ParallelReader-Offline-Setup-x64.exe','ParallelReader-Setup-x64.exe') {
+            $exe = Join-Path $env:RUNNER_TEMP $file
+            Write-Output "$file SHA256 $((Get-FileHash $exe).Hash)"
+            $setup = Start-Process $exe '--quiet --no-launch' -PassThru -Wait -WindowStyle Hidden
+            if ($setup.ExitCode -ne 0) { throw "$file setup failed with $($setup.ExitCode)" }
+            if (!(Test-Path $shortcut) -or !(Test-Path $uninstall)) { throw 'Start menu or uninstall registration failed' }
+            $reader = Start-Process (Join-Path $program 'ParallelReader.exe') -PassThru -WindowStyle Hidden
+            try {
+              $ok = $false
+              for ($i=0; $i -lt 90 -and !$ok; $i++) {
+                Start-Sleep -Seconds 1
+                $child = Get-CimInstance Win32_Process -Filter "ParentProcessId=$($reader.Id) AND Name='node.exe'"
+                if (!$child) { continue }
+                $port = Get-NetTCPConnection -State Listen -OwningProcess $child.ProcessId -ErrorAction SilentlyContinue | Select-Object -First 1 -ExpandProperty LocalPort
+                if ($port) {
+                  $page = Invoke-WebRequest "http://127.0.0.1:$port/" -TimeoutSec 3
+                  $ok = $page.StatusCode -eq 200 -and $page.Content.Contains('双栏 PDF 阅读器')
+                }
+              }
+              if (!$ok) { throw 'Installed desktop failed to initialize WebView2 and serve the reader' }
+            } finally {
+              $reader.Refresh()
+              if (!$reader.HasExited) {
+                [void]$reader.CloseMainWindow()
+                if (!$reader.WaitForExit(3000)) { $reader.Kill(); $reader.WaitForExit() }
+              }
+            }
+            & powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $program 'uninstall.ps1')
+            if ($LASTEXITCODE -ne 0 -or (Test-Path $program) -or (Test-Path $shortcut) -or (Test-Path $uninstall)) { throw 'Uninstall failed' }
+            Write-Output "$file passed."
+          }

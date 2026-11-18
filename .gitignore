@@ -1,0 +1,9 @@
+node_modules/
+dist/
+public/pdf-assets/
+library/
+test-results*/
+playwright-report/
+.env
+.env.*
+*.sqlite*

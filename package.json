@@ -1,0 +1,14 @@
+{
+  "name": "parallel-reader",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build",
+    "start": "node server.mjs",
+    "test": "playwright test"
+  },
+  "dependencies": { "pdfjs-dist": "5.4.530" },
+  "devDependencies": { "vite": "7.3.6", "rollup": "4.62.5", "@playwright/test": "1.62.1", "pdf-lib": "1.17.1" }
+}

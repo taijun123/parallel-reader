@@ -70,6 +70,8 @@
 
 面向 Intel / AMD x64 架构电脑，目标系统为 **Windows 10 22H2** 与 **Windows 11**。两种安装包均内置 Node.js，可按下表选择。已在 Windows 11 x64 验证安装；尚未在缺少 WebView2 的全新 Windows 10 环境实测。
 
+1.0.2 的两个安装包已在独立的 Windows Server 2022 x64 环境完成下载、安装、启动和卸载测试，离线版还验证了从 WebView2 131 升级到 157。[查看安装测试记录](https://github.com/taijun123/parallel-reader/actions/runs/44234910145)。
+
 | 安装包文件 | 适用场景 | 体积 |
 | :--- | :--- | ---: |
 | **`ParallelReader-Offline-Setup-x64.exe`** | **推荐新电脑或离线环境使用**。内置微软官方签名的 Edge WebView2 Runtime 离线安装程序，缺省或版本过低时自动补装 | 约 253 MB |

@@ -64,6 +64,8 @@ To link those two passages:
 
 The x64 installers target **Windows 10 22H2** and **Windows 11** on Intel or AMD processors. Both installers bundle the required Node.js runtime. Installation has been verified on Windows 11 x64. Installation on a clean Windows 10 system without WebView2 has not yet been tested. The application interface is in Simplified Chinese.
 
+Both 1.0.2 installers passed download, installation, launch and uninstall checks on a separate Windows Server 2022 x64 runner. The offline installer also upgraded WebView2 from 131 to 157. [View the installer test run](https://github.com/taijun123/parallel-reader/actions/runs/44234910145).
+
 | Installer | When to use it | Size |
 | :--- | :--- | ---: |
 | **`ParallelReader-Offline-Setup-x64.exe`** | **For a new PC or offline environments.** Includes Microsoft's official WebView2 Evergreen x64 offline installer and installs it automatically if needed | ~253 MB |
